@@ -6,6 +6,12 @@ import com.sun.net.httpserver.HttpHandler;
 import java.io.*;
 
 public class NMEAHttpHandler  implements HttpHandler {
+    private final receiver raceHandler;
+
+    public NMEAHttpHandler(receiver racehandler) {
+        // there is an implied super() here
+        this.raceHandler = racehandler;
+    }
 
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
@@ -26,8 +32,11 @@ public class NMEAHttpHandler  implements HttpHandler {
             // get POST /nmea/442.1 HTTP/1.1
             // content is NMEA message
             String raceId = httpExchange.getRequestURI().toString().substring(6,9);
-
-            System.out.println("handle POST : (" +raceId + ") " + NMEASentence);
+            RaceServer racesrv = raceHandler.getRaceServer(raceId);
+            if (racesrv != null) {
+                racesrv.updateRace(NMEASentence);
+            }
+            //System.out.println("handle POST : (" +raceId + ") " + NMEASentence);
 
             final String response = "OK";
             httpExchange.sendResponseHeaders(200, response.getBytes().length);//response code and length
@@ -65,42 +74,5 @@ public class NMEAHttpHandler  implements HttpHandler {
         return buf.toString();
     }
 
-    /*
-     * NMEA tools
-     */
-    private int getChecksum(final String sentence) {
-        int checksum = 0;
-        for (int i = 0; i < sentence.length(); ++i) {
-            final char c = sentence.charAt(i);
-            checksum ^= c;
-        }
-        return checksum;
-    }
-
-    private String getStringChecksum(final int checksum) {
-        String strChecksum = Integer.toString(checksum, 16).toUpperCase();
-        if (strChecksum.length() < 2) {
-            strChecksum = "0" + strChecksum;
-        }
-        return strChecksum;
-    }
-
-    private boolean VerifNMEAChecksum(final String sentence) {
-        final int len = sentence.length();
-        final String message = sentence.substring(1, sentence.indexOf(42));
-        final String messageCrc = sentence.substring(len - 2);
-        final String cpuCrc = getStringChecksum(getChecksum(message));
-        return messageCrc.equals(cpuCrc);
-    }
-
-    private void Decode(final String sentence) {
-        final boolean rc = VerifNMEAChecksum(sentence);
-
-        if (!rc) {
-            //this.DecodeNMEAMessage(sentence);
-            System.out.println("bad NMEA sentence : "+sentence);
-        }
-
-    }
 
 }
