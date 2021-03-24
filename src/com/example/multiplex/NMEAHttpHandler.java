@@ -18,6 +18,7 @@ public class NMEAHttpHandler  implements HttpHandler {
         String requestParamValue=null;
 
         OutputStream os = httpExchange.getResponseBody();
+        System.out.println();
 
         if("GET".equals(httpExchange.getRequestMethod())) {
             System.out.println("handle GET");
@@ -26,6 +27,7 @@ public class NMEAHttpHandler  implements HttpHandler {
             os.write(response.getBytes());
 
         } else if("POST".equals(httpExchange.getRequestMethod())) {
+            //System.out.println("handle POST" + httpExchange.getRequestURI().toString());
             //String response = httpExchange.getRequestBody().toString();
             InputStreamReader isr = new InputStreamReader(httpExchange.getRequestBody(), "utf-8");
             final String NMEASentence = readBodyAsString(isr);
@@ -33,6 +35,7 @@ public class NMEAHttpHandler  implements HttpHandler {
             // content is NMEA message
             String raceId = httpExchange.getRequestURI().toString().substring(6,9);
             RaceServer racesrv = raceHandler.getRaceServer(raceId);
+            //System.out.println("handle POST : (" +raceId + ") ");
             if (racesrv != null) {
                 racesrv.updateRace(NMEASentence);
             }

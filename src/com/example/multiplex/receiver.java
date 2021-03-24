@@ -16,13 +16,18 @@ public class receiver   {
 
     public synchronized  RaceServer getRaceServer(String raceid) {
         RaceServer server;
-        //TODO: semaphore ?
+        //System.out.println("My Name is :- " + Thread.currentThread().getName());
+
         server = raceServers.get(raceid);
         if (server == null) {
             System.out.println("create new race server " + raceid);
             server = new RaceServer(Integer.parseInt(raceid));
             raceServers.put(raceid,server);
+
+            Thread thread = new Thread(server);
+            thread.start();
         }
+        //System.out.println("return race");
         return server;
     }
 

@@ -2,17 +2,17 @@ package com.example.multiplex;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Date;
 
-public class RaceServer {
+public class RaceServer implements Runnable {
     int raceId;
     int port;
     boolean running = true;
 
     ServerSocket serverConnect;
+    //TODO: create server a list
     Socket dedicadedServer;
 
     public RaceServer(int raceid) {
@@ -21,15 +21,23 @@ public class RaceServer {
 
         try {
             serverConnect = new ServerSocket(port);
-            System.out.println("Server started.\nListening for connections on port : " + port + " ...\n");
+        } catch (IOException e) {
+            System.err.println("Server Connection error : " + e.getMessage());
+        }
+        System.out.println("Server " + raceid + " listening for connections on port : " + port + ".\n");
+    }
 
-            // we listen until user halts server execution
+
+    public void run() {
+        System.out.println("Server started.\n");
+
+        // we listen until user halts server execution
+        try {
             while (running) {
                 dedicadedServer = serverConnect.accept();
                 System.out.println("Connection opened. (" + new Date() + ")");
-
+                //  socat - tcp4:127.0.0.1:10482
             }
-
         } catch (IOException e) {
             System.err.println("Server Connection error : " + e.getMessage());
         }
@@ -38,7 +46,8 @@ public class RaceServer {
     // new NMEA data
     public void updateRace(final String sentence) {
         // send to each client ...
-        System.out.println("got NMEA data (" +raceId + ") : " + sentence);
+        System.out.println("NMEA data (" +raceId + ") : " + sentence);
+        Decode(sentence);
         OutputStream clientOutput = null;
         try {
             clientOutput = dedicadedServer.getOutputStream();
